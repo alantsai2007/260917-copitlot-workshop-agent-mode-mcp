@@ -5,8 +5,12 @@ const input = document.querySelector('#todo-input');
 const todoList = document.querySelector('#todo-list');
 const emptyMessage = document.querySelector('#empty-message');
 const remainingCount = document.querySelector('#remaining-count');
+const themeToggle = document.querySelector('#theme-toggle');
+const filterButtons = document.querySelectorAll('.filter-button');
 
 let todos = loadTodos();
+let currentFilter = 'all';
+const themeStorageKey = 'offline-todo-theme';
 
 // 從瀏覽器儲存空間讀取既有待辦，資料損壞時回到空清單。
 function loadTodos() {
@@ -23,11 +27,53 @@ function saveTodos() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
+function getPreferredTheme() {
+  const savedTheme = localStorage.getItem(themeStorageKey);
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    return savedTheme;
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  themeToggle.textContent = theme === 'dark' ? '☀️ 淺色模式' : '🌙 深色模式';
+  themeToggle.setAttribute('aria-pressed', theme === 'dark');
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(themeStorageKey, nextTheme);
+  applyTheme(nextTheme);
+}
+
+function getFilteredTodos() {
+  if (currentFilter === 'active') {
+    return todos.filter((todo) => !todo.completed);
+  }
+  if (currentFilter === 'completed') {
+    return todos.filter((todo) => todo.completed);
+  }
+  return todos;
+}
+
+function updateEmptyMessage(filteredTodos) {
+  if (todos.length === 0) {
+    emptyMessage.textContent = '還沒有任何待辦事項,新增一個吧!';
+  } else if (filteredTodos.length === 0) {
+    const filterName = currentFilter === 'active' ? '未完成' : '已完成';
+    emptyMessage.textContent = `目前沒有${filterName}的待辦事項。`;
+  }
+  emptyMessage.hidden = filteredTodos.length > 0;
+}
+
 function renderTodos() {
   todoList.innerHTML = '';
-  emptyMessage.hidden = todos.length > 0;
+  const filteredTodos = getFilteredTodos();
+  updateEmptyMessage(filteredTodos);
 
-  todos.forEach((todo) => {
+  filteredTodos.forEach((todo) => {
     const item = document.createElement('li');
     item.className = 'todo-item';
     if (todo.completed) {
@@ -58,6 +104,16 @@ function renderTodos() {
 
   const unfinishedCount = todos.filter((todo) => !todo.completed).length;
   remainingCount.textContent = `未完成:${unfinishedCount} 項`;
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  filterButtons.forEach((button) => {
+    const isActive = button.dataset.filter === currentFilter;
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', isActive);
+  });
+  renderTodos();
 }
 
 function addTodo(text) {
@@ -97,4 +153,10 @@ form.addEventListener('submit', (event) => {
   input.focus();
 });
 
+themeToggle.addEventListener('click', toggleTheme);
+filterButtons.forEach((button) => {
+  button.addEventListener('click', () => setFilter(button.dataset.filter));
+});
+
+applyTheme(getPreferredTheme());
 renderTodos();
