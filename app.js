@@ -1,4 +1,6 @@
 const STORAGE_KEY = 'offline-todo-items';
+const FILTER_STORAGE_KEY = 'offline-todo-filter';
+const FILTER_VALUES = ['all', 'active', 'completed'];
 
 const form = document.querySelector('#todo-form');
 const input = document.querySelector('#todo-input');
@@ -9,7 +11,7 @@ const themeToggle = document.querySelector('#theme-toggle');
 const filterButtons = document.querySelectorAll('.filter-button');
 
 let todos = loadTodos();
-let currentFilter = 'all';
+let currentFilter = loadFilter();
 const themeStorageKey = 'offline-todo-theme';
 
 // 從瀏覽器儲存空間讀取既有待辦，資料損壞時回到空清單。
@@ -20,6 +22,11 @@ function loadTodos() {
   } catch (error) {
     return [];
   }
+}
+
+function loadFilter() {
+  const savedFilter = localStorage.getItem(FILTER_STORAGE_KEY);
+  return FILTER_VALUES.includes(savedFilter) ? savedFilter : 'all';
 }
 
 // 將目前清單保存到瀏覽器，讓重新整理後仍能保留資料。
@@ -107,7 +114,8 @@ function renderTodos() {
 }
 
 function setFilter(filter) {
-  currentFilter = filter;
+  currentFilter = FILTER_VALUES.includes(filter) ? filter : 'all';
+  localStorage.setItem(FILTER_STORAGE_KEY, currentFilter);
   filterButtons.forEach((button) => {
     const isActive = button.dataset.filter === currentFilter;
     button.classList.toggle('active', isActive);
