@@ -269,6 +269,30 @@ h1 {
   font-size: 0.76rem;
 }
 
+.clear-completed-button {
+  margin-left: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--accent-dark);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.clear-completed-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-muted);
+}
+
+.clear-completed-button:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .footer-dot {
   width: 4px;
   height: 4px;
@@ -313,5 +337,9 @@ h1 {
 
   .todo-form button {
     min-height: 44px;
+  }
+
+  .clear-completed-button {
+    margin-left: 0;
   }
 }
